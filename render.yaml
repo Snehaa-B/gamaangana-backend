@@ -1,0 +1,12 @@
+# Render Blueprint — optional; or configure the same in the dashboard
+services:
+  - type: web
+    name: gamaangana-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
