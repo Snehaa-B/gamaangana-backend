@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  role      String    @default("USER")
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Hall {
+  id        Int       @id @default(autoincrement())
+  name      String
+  location  String
+  capacity  Int
+  booking   Booking[]
+  events    Event[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  purpose     String
+  hallId      Int
+  status      String   @default("PENDING")
+  bookingDate DateTime
+
+  user  User   @relation(fields: [userId], references: [id])
+  hall  Hall   @relation(fields: [hallId], references: [id])
+  event Event?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([hallId, bookingDate])
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  bookingId   Int      @unique
+  hallId      Int
+  title       String
+  description String
+  event       DateTime
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  hall        Hall     @relation(fields: [hallId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model maintenanceItem {
+  id             Int      @id @default(autoincrement())
+  itemName       String
+  requiredFunds  Int
+  collectedFunds Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
