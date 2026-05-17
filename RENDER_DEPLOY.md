@@ -4,38 +4,74 @@
 
 | Field | Value |
 |-------|--------|
-| **Root Directory** | *(empty — if this repo is only the backend)* |
 | **Build Command** | `npm install --include=dev && npm run build` |
 | **Start Command** | `npm start` |
 
-> **Important:** Use `--include=dev` so TypeScript and `@types/*` install during build.
+## Environment variables (required)
 
-## Environment variables
+Render → your service → **Environment** → add each variable.
 
-Set these in Render → **Environment**:
+### Database (Supabase)
+
+| Key | Value |
+|-----|--------|
+| `DATABASE_URL` | Pooler URL (port **6543**, `?pgbouncer=true`) |
+| `DIRECT_URL` | Direct URL (port **5432**) |
+
+### Firebase (required — app will not start without these)
+
+**Do not** set `FIREBASE_SERVICE_ACCOUNT_PATH` on Render. The JSON file is not in GitHub.
+
+**Option A — three variables (recommended)**
+
+| Key | Value |
+|-----|--------|
+| `FIREBASE_PROJECT_ID` | e.g. `gamaangna` |
+| `FIREBASE_CLIENT_EMAIL` | From Firebase → Service accounts, e.g. `firebase-adminsdk-...@gamaangna.iam.gserviceaccount.com` |
+| `FIREBASE_PRIVATE_KEY` | Full private key from the JSON file |
+
+For `FIREBASE_PRIVATE_KEY` on Render, paste the entire key including:
 
 ```
-DATABASE_URL=postgresql://...pooler.supabase.com:6543/postgres?pgbouncer=true
-DIRECT_URL=postgresql://...supabase.com:5432/postgres
-
-FIREBASE_PROJECT_ID=gamaangna
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-...@gamaangna.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-
-ADMIN_EMAIL=admin@gamaangana.com
-ADMIN_PASSWORD=your-secure-password
-ADMIN_API_TOKEN=long-random-secret
-
-NODE_ENV=production
+-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----
 ```
 
-Do **not** use `FIREBASE_SERVICE_ACCOUNT_PATH` on Render — use the three Firebase vars above.
+Keep line breaks as real newlines, or use `\n` between lines in one line.
 
-## Node version
+**Option B — one JSON variable**
 
-This project uses **Node 20** (see `.node-version`). Render will pick it up automatically.
+| Key | Value |
+|-----|--------|
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Paste the **entire** contents of `firebase-service-account.json` as one line |
+
+### Admin + app
+
+| Key | Value |
+|-----|--------|
+| `ADMIN_EMAIL` | `admin@gamaangana.com` |
+| `ADMIN_PASSWORD` | Your secure password |
+| `ADMIN_API_TOKEN` | Long random secret string |
+| `NODE_ENV` | `production` |
+
+### Checklist
+
+- [ ] `DATABASE_URL` and `DIRECT_URL` set  
+- [ ] Firebase: **either** Option A (3 vars) **or** Option B (JSON var)  
+- [ ] **Remove** `FIREBASE_SERVICE_ACCOUNT_PATH` if you added it  
+- [ ] Save → **Manual Deploy**
+
+Logs should **not** show `injected env (0)` for critical vars — add them in the Render UI, not a `.env` file in the repo.
 
 ## After deploy
 
-Test: `https://YOUR-SERVICE.onrender.com/`  
-Expected: `{"success":true,"message":"Grama Angana API Running"}`
+```text
+https://YOUR-SERVICE.onrender.com/
+```
+
+Expected:
+
+```json
+{"success":true,"message":"Grama Angana API Running"}
+```
