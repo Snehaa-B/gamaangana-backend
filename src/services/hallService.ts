@@ -18,8 +18,7 @@ export const findById = async (id: number) => {
     where: { id },
     include: {
       booking: {
-        where: { status: { in: ["PENDING", "APPROVED"] } },
-        orderBy: { bookingDate: "asc" },
+        orderBy: { bookingDate: "desc" },
         include: {
           user: { select: { id: true, name: true, email: true } },
         },
