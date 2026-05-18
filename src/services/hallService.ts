@@ -42,7 +42,13 @@ export const findBookingsOnDate = async (hallId: number, dateStr: string) => {
       bookingDate: { gte: dayStart, lte: dayEnd },
       status: { in: ["PENDING", "APPROVED"] },
     },
-    select: { id: true, purpose: true, status: true, bookingDate: true },
+    select: {
+      id: true,
+      purpose: true,
+      status: true,
+      bookingDate: true,
+      user: { select: { id: true, name: true, email: true } },
+    },
   });
 };
 

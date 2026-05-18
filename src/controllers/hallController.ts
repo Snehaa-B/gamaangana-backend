@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as hallService from "../services/hallService";
-import { DEFAULT_TIME_SLOTS } from "../types";
+import { buildSlotAvailability } from "../utils/slotUtils";
 
 export const getAllHalls = async (
   _req: Request,
@@ -39,7 +39,7 @@ export const getHallById = async (
   }
 };
 
-/** UI time slots — one booking per hall per day in DB; day booked = all slots BOOKED */
+/** Per-slot availability — slot label is parsed from booking purpose "[08:00 - 10:00] ..." */
 export const getHallAvailability = async (
   req: Request,
   res: Response
@@ -57,12 +57,7 @@ export const getHallAvailability = async (
     }
 
     const bookings = await hallService.findBookingsOnDate(id, date);
-    const dayBooked = bookings.length > 0;
-
-    const slots = DEFAULT_TIME_SLOTS.map((slot) => ({
-      ...slot,
-      status: dayBooked ? "BOOKED" : "FREE",
-    }));
+    const slots = buildSlotAvailability(bookings);
 
     res.json({ success: true, data: { date, slots, bookings } });
   } catch (error) {

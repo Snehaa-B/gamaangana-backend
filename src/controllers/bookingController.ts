@@ -3,6 +3,8 @@ import * as bookingService from "../services/bookingService";
 import * as eventService from "../services/eventService";
 import * as userService from "../services/userService";
 import { AuthRequest } from "../types";
+import * as hallService from "../services/hallService";
+import { extractSlotLabelFromPurpose, hasSlotConflict } from "../utils/slotUtils";
 
 export const getAllBookings = async (
   req: AuthRequest,
@@ -89,11 +91,36 @@ export const createBooking = async (
       return;
     }
 
+    const parsedHallId = parseInt(hallId);
+    const parsedDate = new Date(bookingDate);
+    const dateOnly = bookingDate.toString().substring(0, 10);
+
+    const slotLabel = extractSlotLabelFromPurpose(purpose);
+    if (!slotLabel) {
+      res.status(400).json({
+        success: false,
+        message: "Booking must include a time slot, e.g. [08:00 - 10:00] in purpose",
+      });
+      return;
+    }
+
+    const existingOnDate = await hallService.findBookingsOnDate(
+      parsedHallId,
+      dateOnly
+    );
+    if (hasSlotConflict(purpose, existingOnDate)) {
+      res.status(409).json({
+        success: false,
+        message: `Time slot "${slotLabel}" is already booked for this hall on that date`,
+      });
+      return;
+    }
+
     const booking = await bookingService.createBooking({
       userId: dbUser.id,
-      hallId: parseInt(hallId),
+      hallId: parsedHallId,
       purpose,
-      bookingDate: new Date(bookingDate),
+      bookingDate: parsedDate,
     });
 
     res.status(201).json({ success: true, data: booking });
@@ -102,7 +129,7 @@ export const createBooking = async (
     if (prismaError.code === "P2002") {
       res.status(409).json({
         success: false,
-        message: "This hall is already booked for the selected date",
+        message: "This time slot is already booked for the selected date",
       });
       return;
     }
